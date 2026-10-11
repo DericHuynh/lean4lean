@@ -49,7 +49,8 @@ private def matchChain? : Code .pure → Option (LetDecl .pure ×
       | .const n _ args _, .const m _ args' _ =>
         if appendName n && appendName m &&
            args.size == 2 && args'.size == 2 &&
-           args'[0]! == .fvar f.fvarId then
+           args'[0]! == .fvar f.fvarId &&
+           args'[1]! != .fvar f.fvarId then
           some (s, args[0]!, args[1]!, args'[1]!)
         else none
       | _, _ => none
@@ -68,7 +69,8 @@ private def matchChain? : Code .pure → Option (LetDecl .pure ×
            src == happ.fvarId &&
            fn == proj.fvarId && fn' == proj.fvarId &&
            args.size == 2 && args'.size == 2 &&
-           args'[0]! == .fvar f.fvarId then
+           args'[0]! == .fvar f.fvarId &&
+           args'[1]! != .fvar f.fvarId then
           some (s, args[0]!, args[1]!, args'[1]!)
         else none
       | _, _, _, _, _ => none
