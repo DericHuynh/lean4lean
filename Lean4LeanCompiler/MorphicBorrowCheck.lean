@@ -72,7 +72,6 @@ theorem validate_sound (x : FVarId) (code : Code .impure)
   cases hx : hasDirectTransferAux (code.size + 1) x code <;>
     simp [hx] at h ⊢
 
-/-- Fuel zero conservatively rejects even a syntactically harmless path. -/
 #print axioms validate_sound
 
 end Lean.Compiler.LCNF.MorphicBorrow.DirectTransfer
