@@ -9,3 +9,4 @@ import Lean4LeanCompiler.Examples
 import Lean4LeanCompiler.SourceProofs
 import Lean4LeanCompiler.Native
 import Lean4LeanCompiler.VerifiedJoin
+import Lean4LeanCompiler.StrictExamples

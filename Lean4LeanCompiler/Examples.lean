@@ -6,6 +6,7 @@ an independently stock-compiled reference module.
 import Lean4LeanCompiler.Reference
 import Lean4LeanCompiler.LCNFExperimental
 import Lean4LeanCompiler.LCNFAudit
+import Lean4LeanCompiler.StrictExamples
 
 namespace Lean4LeanCompiler.Examples
 
@@ -52,6 +53,7 @@ def bumpList (xs : List UInt8) : List UInt8 :=
 def smokeTest : IO Unit := do
   Lean4LeanCompiler.LCNFExperimental.rcPassSmoke
   Lean4LeanCompiler.LCNFInventory.inventorySmoke
+  Lean4LeanCompiler.LCNFStrict.gateSmoke
   let source := ([11, 22, 33, 44] : List UInt8).toByteArray
   let copied := copyFour source
   unless copied.size == 4 && copied.get! 0 == 11 && copied.get! 3 == 44 do
