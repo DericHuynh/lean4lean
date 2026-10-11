@@ -3,7 +3,7 @@ A separate compiler hook sees actual elaborated Lean declarations at impure
 LCNF, after stock ownership analysis, before stock code emission. It only
 records current borrowing decisions and makes NO verification claim.
 -/
-import Lean.Compiler.LCNF.Passes
+import Lean4LeanCompiler.LCNFInventory
 
 namespace Lean4LeanCompiler.LCNFAudit
 open Lean
@@ -20,7 +20,10 @@ def auditPass : Pass where
          decl.name.toString == "Lean4LeanCompiler.Examples.bumpList" then
         let borrowed := decl.params.foldl
           (fun n p => if p.borrow then n + 1 else n) (0 : Nat)
-        logInfo m!"[l4lc] {decl.name}: borrowed parameters={borrowed}; certified=false"
+        let sites := match decl.value with
+          | .code body => Lean4LeanCompiler.LCNFInventory.codeSites body
+          | _ => { unknown := 1 }
+        logInfo m!"[l4lc] {decl.name}: borrowed parameters={borrowed}; staticSites=({sites.render}); certified=false"
     return decls
 
 @[cpass] meta def installAudit : PassInstaller :=
