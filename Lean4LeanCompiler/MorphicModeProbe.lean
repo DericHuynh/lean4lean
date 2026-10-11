@@ -248,17 +248,3 @@ end Lean.Compiler.LCNF.MorphicBorrow
 
 
 
-namespace Lean4LeanCompiler.MorphicModeProbe
-
-open Lean
-open Lean.Compiler.LCNF
-
-@[cpass] meta def installModes : PassInstaller :=
-  PassInstaller.installBefore .impure (Name.mkSimple "inferBorrow")
-    (fun _ => MorphicBorrow.inferMorphicBorrow)
-
-@[cpass] meta def auditModes : PassInstaller :=
-  PassInstaller.installAfter .impure (Name.mkSimple "inferBorrow")
-    (fun _ => MorphicBorrow.auditMorphicBorrow)
-
-end Lean4LeanCompiler.MorphicModeProbe
