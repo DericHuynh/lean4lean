@@ -1,0 +1,21 @@
+name: Append Fusion Probe
+on:
+  push:
+    branches: [experiment/append-fusion-probe]
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build probe with pinned Lean and print call names
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: "false"
+          build: "true"
+          build-args: "lean4leanAppendProbe"
+          use-mathlib-cache: "false"
+      - name: Run compiled probe
+        run: lake exe lean4leanAppendProbe

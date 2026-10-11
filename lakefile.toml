@@ -57,3 +57,8 @@ root = "Lean4LeanCompiler.Native.FromLCNFMain"
 [[lean_exe]]
 name = "lean4leanCheckNative"
 root = "Lean4LeanCompiler.Native.CheckFromLCNFMain"
+
+# Read-only probe for actual call shapes before borrow/RC lowering.
+[[lean_exe]]
+name = "lean4leanAppendProbe"
+root = "Lean4LeanCompiler.ProbeExamples"
