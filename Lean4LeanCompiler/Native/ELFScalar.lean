@@ -83,4 +83,23 @@ theorem emitted_magic (r : FromLCNF.Register) :
     (objectBytes r).take 4 = [127, 69, 76, 70] := by
   cases r <;> decide
 
+/-- Checks the *entire* emitted object against its certified scalar selection
+    and fixed target layout, not a mutable filename or descriptive hash. -/
+def checkObject (r : FromLCNF.Register) (bytes : ByteArray) : Bool :=
+  decide (bytes = (objectBytes r).toByteArray)
+
+/-- Acceptance binds all serialized bytes to the checked emitter output. -/
+theorem checkObject_sound (r : FromLCNF.Register) (bytes : ByteArray)
+    (h : checkObject r bytes = true) :
+    bytes = (objectBytes r).toByteArray := by
+  exact of_decide_eq_true (by simpa [checkObject] using h)
+
+/-- A single-bit corruption in the first x86 opcode is rejected by the
+    exact object checker, even if the rest of the ELF file is unchanged. -/
+example :
+    checkObject .rdi ( (objectBytes .rsi).toByteArray ) = false := by
+  decide
+
+#print axioms checkObject_sound
+
 end Lean4LeanCompiler.Native.ELFScalar
