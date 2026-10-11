@@ -47,3 +47,13 @@ root = "Lean4LeanCompiler.Native.Main"
 [[lean_exe]]
 name = "lean4leanConcatBench"
 root = "Lean4LeanCompiler.ConcatBenchMain"
+
+# Strict native object generation from actual ordinary Lean impure-LCNF.
+[[lean_exe]]
+name = "lean4leanFromLCNF"
+root = "Lean4LeanCompiler.Native.FromLCNFMain"
+
+# Verify the *entire* emitted object against the Lean source-bound selection.
+[[lean_exe]]
+name = "lean4leanCheckNative"
+root = "Lean4LeanCompiler.Native.CheckFromLCNFMain"
