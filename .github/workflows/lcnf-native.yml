@@ -1,0 +1,46 @@
+name: Native from actual LCNF
+
+on:
+  push:
+    branches: [experiment/lcnf-native-importer]
+  pull_request:
+    paths:
+      - "Lean4LeanCompiler/**"
+      - "Lean4LeanCompiler.lean"
+      - "lakefile.toml"
+      - "tests/native-from-lcnf.c"
+      - ".github/workflows/lcnf-native.yml"
+  workflow_dispatch:
+
+jobs:
+  native-lcnf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject new proof admissions
+        run: |
+          if grep -R -nE '^[[:space:]]*(sorry|admit|axiom)([[:space:]]|$)' Lean4LeanCompiler; then
+            echo "Unexpected compiler proof admission"
+            exit 1
+          fi
+      - name: Build pinned Lean importer and native CLI
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: "false"
+          build: "true"
+          build-args: "Lean4LeanCompiler.NativeExamples lean4leanFromLCNF"
+          use-mathlib-cache: "false"
+      - name: Generate native ELF from actual compiled Lean LCNF
+        run: |
+          mkdir -p .lake/build/native
+          lake exe lean4leanFromLCNF .lake/build/native/from_lcnf.o
+          readelf -hW -SW -sW .lake/build/native/from_lcnf.o
+          objdump -dr .lake/build/native/from_lcnf.o
+      - name: Check 200000 randomized scalar ABI cases
+        run: |
+          cc -std=c11 -O3 -fno-lto -Wall -Wextra -Werror \
+            -Wl,-z,noexecstack tests/native-from-lcnf.c \
+            .lake/build/native/from_lcnf.o \
+            -o .lake/build/native/from-lcnf-test
+          .lake/build/native/from-lcnf-test
