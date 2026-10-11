@@ -5,7 +5,7 @@ function to the native subset's modeled semantics.
 These proofs do NOT prove the CPU's instruction decoder/ABI implementation.
 -/
 import Lean4LeanCompiler.Native.ISA
-import Lean4LeanCompiler.SourceProofs
+import Lean4LeanCompiler.Reference
 
 namespace Lean4LeanCompiler.Native
 
@@ -34,8 +34,8 @@ structure CertifiedCopy4 where
       (fun out => out.data.toList) = some [a, b, c, d]
 
 def copyRegistration : CertifiedCopy4 :=
-  { source := Lean4LeanCompiler.Examples.writeFourInto
-    sourceCorrect := Lean4LeanCompiler.SourceProofs.writeFourInto_source_bytes }
+  { source := Lean4LeanCompiler.Reference.writeFourInto
+    sourceCorrect := by intro a b c d; rfl }
 
 theorem modeledAdd_matchesSource (cert : CertifiedAdd) (a b : UInt64) :
     (ISA.runAdd ISA.addInstructions { rdi := a, rsi := b }).rax =
