@@ -81,7 +81,8 @@ def gateSmoke : IO Unit := do
       type := ImpureType.uint64
       params := #[{ fvarId := x, binderName := Name.mkSimple "x",
                     type := ImpureType.uint64, borrow := false }]
-      value := .code (.return x) }
+      value := .code (.return x)
+      inlineAttr? := none }
   unless check good do
     throw <| IO.userError "strict gate rejected an effect-free identity"
   unless (validate good).isOk do
