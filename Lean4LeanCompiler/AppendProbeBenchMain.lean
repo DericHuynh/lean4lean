@@ -1,5 +1,5 @@
 import Lean4LeanCompiler.AppendProbeStock
-import Lean4LeanCompiler.ProbeExamples
+import Lean4LeanCompiler.AppendProbeOptimized
 
 namespace Lean4LeanCompiler.AppendProbeBenchmark
 
@@ -27,7 +27,7 @@ def benchmark : IO Unit := do
     let b := List.replicate n (0x55 : UInt8) |>.toByteArray
     let c := List.replicate n (0xa9 : UInt8) |>.toByteArray
     unless AppendProbeStock.tripleAppend xs[0]! b c ==
-      ProbeExamples.tripleAppend xs[0]! b c do
+      AppendProbeOptimized.tripleAppend xs[0]! b c do
       throw <| IO.userError "automatic fusion changed output"
     let iters := if n == 16384 then 1500 else 6000
     for rep in [:5] do
@@ -39,11 +39,11 @@ def benchmark : IO Unit := do
         let (t0, c0) ← timed AppendProbeStock.tripleAppend xs b c iters
         stockNs := t0
         stockCheck := c0
-        let (t1, c1) ← timed ProbeExamples.tripleAppend xs b c iters
+        let (t1, c1) ← timed AppendProbeOptimized.tripleAppend xs b c iters
         fusedNs := t1
         fusedCheck := c1
       else
-        let (t1, c1) ← timed ProbeExamples.tripleAppend xs b c iters
+        let (t1, c1) ← timed AppendProbeOptimized.tripleAppend xs b c iters
         fusedNs := t1
         fusedCheck := c1
         let (t0, c0) ← timed AppendProbeStock.tripleAppend xs b c iters
