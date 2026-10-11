@@ -94,10 +94,9 @@ theorem checkObject_sound (r : FromLCNF.Register) (bytes : ByteArray)
     bytes = (objectBytes r).toByteArray := by
   exact of_decide_eq_true (by simpa [checkObject] using h)
 
-/-- A single-bit corruption in the first x86 opcode is rejected by the
-    exact object checker, even if the rest of the ELF file is unchanged. -/
-example :
-    checkObject .rdi ( (objectBytes .rsi).toByteArray ) = false := by
+/-- Unsupported bytes are rejected by the validated opcode decoder.
+    A whole-object mutation is also exercised in native CI. -/
+example : FromLCNF.decode [0xc3] = none := by
   decide
 
 #print axioms checkObject_sound
