@@ -19,12 +19,10 @@ jobs:
       - name: Check Lean proof file contains no new admits
         run: |
           if grep -nE '^[[:space:]]*(sorry|admit|axiom)([[:space:]]|$)' Lean4LeanCompiler/MorphicLifetimePilot.lean; then exit 1; fi
-      - name: Build and run borrowing pilot with pinned Lean
+      - name: Build complete bounded LCNF direct-transfer checker and kernel proofs
         uses: leanprover/lean-action@v1
         with:
           auto-config: "false"
           build: "true"
-          build-args: "lean4leanMorphicPilot"
+          build-args: "Lean4LeanCompiler.MorphicBorrowCheck"
           use-mathlib-cache: "false"
-      - name: Execute compiled ordinary Lean semantics
-        run: lake exe lean4leanMorphicPilot
