@@ -1,4 +1,4 @@
-import Lean4LeanCompiler.MorphicModeProbe
+import Lean4LeanCompiler.MorphicModeInstaller
 
 set_option trace.Compiler.morphicBorrow true
 
