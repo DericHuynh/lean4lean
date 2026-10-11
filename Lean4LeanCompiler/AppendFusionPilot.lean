@@ -11,7 +11,7 @@ open Lean.Compiler.LCNF
   dst.fastAppend c
 
 private def helperName : Name :=
-  Name.str (Name.mkSimple "Lean4LeanCompiler.AppendFusionPilot") "fastAppend3"
+  Name.str (Name.str (Name.mkSimple "Lean4LeanCompiler") "AppendFusionPilot") "fastAppend3"
 
 private def appendName (n : Name) : Bool :=
   n.toString == "ByteArray.fastAppend"
