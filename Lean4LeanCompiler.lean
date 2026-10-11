@@ -13,3 +13,4 @@ import Lean4LeanCompiler.StrictExamples
 import Lean4LeanCompiler.NativeExamples
 import Lean4LeanCompiler.Native.ELFScalar
 import Lean4LeanCompiler.Native.SourceLink
+import Lean4LeanCompiler.Native.ELFArithmetic

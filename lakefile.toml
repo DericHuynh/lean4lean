@@ -57,3 +57,12 @@ root = "Lean4LeanCompiler.Native.FromLCNFMain"
 [[lean_exe]]
 name = "lean4leanCheckNative"
 root = "Lean4LeanCompiler.Native.CheckFromLCNFMain"
+
+# Experimental direct native emission of real post-elaboration UInt64 addition.
+[[lean_exe]]
+name = "lean4leanAddFromLCNF"
+root = "Lean4LeanCompiler.Native.ArithmeticMain"
+
+[[lean_exe]]
+name = "lean4leanCheckAddNative"
+root = "Lean4LeanCompiler.Native.CheckArithmeticMain"
