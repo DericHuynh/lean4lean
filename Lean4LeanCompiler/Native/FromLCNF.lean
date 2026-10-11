@@ -101,9 +101,7 @@ def nativeExtractionPass : Pass where
         match recognize d with
         | none => throwError m!"[l4lc-native] unsupported LCNF in requested declaration {d.name}; no native object produced"
         | some reg =>
-          modifyEnv fun env =>
-            exportedNative.addEntry env { name := d.name, arg := reg }
-          logInfo m!"[l4lc-native] extracted {d.name} from impure LCNF: {repr reg}; no fallback; ABI=x86_64-sysv"
+          logInfo m!"[l4lc-native] recognized {d.name} from impure LCNF: {repr reg}; persistence disabled in diagnostic mode"
     return ds
 
 /-- Fast unit-level rejection tests; actual declaration capture is tested
