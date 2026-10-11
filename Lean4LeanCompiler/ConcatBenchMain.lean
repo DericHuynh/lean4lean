@@ -30,7 +30,7 @@ def timed
     let out := f a b c
     checksum := checksum + out.size + (out.get! (i % out.size)).toNat
   let finish ← IO.monoNanosNow
-  return ((finish - start).toNat, checksum)
+  return (finish - start, checksum)
 
 def benchmark : IO Unit := do
   for n in [256, 4096, 16384] do
