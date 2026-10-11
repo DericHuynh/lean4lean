@@ -10,7 +10,7 @@ namespace Lean4LeanCompiler.LCNFEnforce
 open Lean
 open Lean.Compiler.LCNF
 
-def prefix : String := "Lean4LeanCompiler.StrictEnforced."
+def targetPrefix : String := "Lean4LeanCompiler.StrictEnforced."
 
 def enforcePass : Pass where
   phase := .impure
@@ -19,7 +19,7 @@ def enforcePass : Pass where
   shouldAlwaysRunCheck := true
   run := fun decls => do
     for decl in decls do
-      if decl.name.toString.startsWith prefix then
+      if decl.name.toString.startsWith targetPrefix then
         match Lean4LeanCompiler.LCNFStrict.validate decl with
         | .ok () =>
           logInfo m!"[l4lc-strict] accepted {decl.name}; syntactic-only; machineCertificate=false"
