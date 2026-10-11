@@ -18,10 +18,9 @@ theorem fastAppend3_eq_append (a b c : ByteArray) :
     fastAppend3 a b c = (a ++ b) ++ c := by
   have he : ByteArray.emptyWithCapacity (a.size + b.size + c.size) =
       ByteArray.empty := rfl
-  unfold fastAppend3
-  split_ifs
-  · simp [ByteArray.fastAppend_eq]
-  · simp [ByteArray.fastAppend_eq, he]
+  by_cases h : a.size + b.size + c.size < 16384
+  · simp [fastAppend3, h, ByteArray.fastAppend_eq]
+  · simp [fastAppend3, h, ByteArray.fastAppend_eq, he]
 
 #print axioms fastAppend3_eq_append
 
