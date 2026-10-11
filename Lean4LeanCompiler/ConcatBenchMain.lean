@@ -50,11 +50,19 @@ def benchmark : IO Unit := do
       let mut baselineChecksum : Nat := 0
       let mut fastChecksum : Nat := 0
       if rep % 2 == 0 then
-        (baseline, baselineChecksum) ← timed Reference.join3Baseline xs b c iterations
-        (fast, fastChecksum) ← timed VerifiedJoin.join3Optimized xs b c iterations
+        let (t1, c1) ← timed Reference.join3Baseline xs b c iterations
+        baseline := t1
+        baselineChecksum := c1
+        let (t2, c2) ← timed VerifiedJoin.join3Optimized xs b c iterations
+        fast := t2
+        fastChecksum := c2
       else
-        (fast, fastChecksum) ← timed VerifiedJoin.join3Optimized xs b c iterations
-        (baseline, baselineChecksum) ← timed Reference.join3Baseline xs b c iterations
+        let (t1, c1) ← timed VerifiedJoin.join3Optimized xs b c iterations
+        fast := t1
+        fastChecksum := c1
+        let (t2, c2) ← timed Reference.join3Baseline xs b c iterations
+        baseline := t2
+        baselineChecksum := c2
       unless baselineChecksum == fastChecksum do
         throw <| IO.userError "benchmark results differ"
       let ratio := fast.toFloat / baseline.toFloat
