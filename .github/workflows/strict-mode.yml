@@ -1,0 +1,38 @@
+name: Strict Lean Resource Mode
+
+on:
+  push:
+    branches: [experiment/strict-mode-enforcement]
+  pull_request:
+    paths:
+      - "Lean4LeanCompiler/**"
+      - "tests/strict/**"
+      - ".github/workflows/strict-mode.yml"
+      - "lakefile.toml"
+  workflow_dispatch:
+
+jobs:
+  strict:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile Lean checker and compiler component
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: "false"
+          build: "true"
+          build-args: "Lean4LeanCompiler"
+          use-mathlib-cache: "false"
+      - name: Accept supported scalar Lean declaration
+        run: lake env lean tests/strict/Accept.lean
+      - name: Reject unsupported declaration without stock fallback
+        run: |
+          set +e
+          lake env lean tests/strict/Reject.lean > /tmp/l4lc-strict.log 2>&1
+          result=$?
+          set -e
+          cat /tmp/l4lc-strict.log
+          test "$result" -ne 0
+          grep -F "[l4lc-strict] rejected" /tmp/l4lc-strict.log
+          grep -F "stock fallback prohibited" /tmp/l4lc-strict.log
