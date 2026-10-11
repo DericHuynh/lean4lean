@@ -68,6 +68,7 @@ structure CopyRegisters where
   src : List UInt8
   dst : List UInt8
   eax : Option (List UInt8) := none
+  deriving DecidableEq
 
 /-- Loading and storing bytes are separate events; the load precedes the
     write. This model includes length checks, which the emitted CPU does NOT.
