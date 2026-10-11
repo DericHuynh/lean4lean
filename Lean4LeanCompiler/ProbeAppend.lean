@@ -32,6 +32,34 @@ def probeBasePass : Pass where
 @[cpass] meta def installProbeBase : PassInstaller :=
   PassInstaller.installAfter .base (Name.mkSimple "init") (fun _ => probeBasePass)
 
+def afterInstances : Pass where
+  phase := .base
+  phaseOut := .base
+  name := Name.mkSimple "appendProbeAfterInstances"
+  run := fun decls => do
+    for decl in decls do
+      if decl.name.toString.startsWith "Lean4LeanCompiler.ProbeExamples." then
+        if let .code body := decl.value then
+          logInfo m!"[append-after-instances] {decl.name}: {collectBase body}"
+    return decls
+
+@[cpass] meta def installAfterInstances : PassInstaller :=
+  PassInstaller.installAfter .base (Name.mkSimple "pullInstances") (fun _ => afterInstances)
+
+def afterSimp : Pass where
+  phase := .base
+  phaseOut := .base
+  name := Name.mkSimple "appendProbeAfterSimp"
+  run := fun decls => do
+    for decl in decls do
+      if decl.name.toString.startsWith "Lean4LeanCompiler.ProbeExamples." then
+        if let .code body := decl.value then
+          logInfo m!"[append-after-simp] {decl.name}: {collectBase body}"
+    return decls
+
+@[cpass] meta def installAfterSimp : PassInstaller :=
+  PassInstaller.installAfter .base (Name.mkSimple "simp") (fun _ => afterSimp)
+
 partial def collect : Code .impure → List String
   | .let decl k =>
     let head := match decl.value with
