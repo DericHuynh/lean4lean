@@ -95,3 +95,39 @@ Next: add a second independently extracted scalar argument source,
 checked direct calls and small modular arithmetic, then validate an
 LCNF operational semantics and resource contracts linked to real runtime
 observations. The current narrow success does not imply those properties.
+
+
+## Second source declaration and register selection
+
+The follow-on integration supports an ordinary Lean two-argument function:
+
+    @[export l4lc_stock_second] def returnSecond (_first second : UInt64) : UInt64 := second
+    #l4lc_extract_scalar returnSecond as extractedSecond
+
+The export annotation maintains the source ABI arity at the stock
+compiler boundary. The native extractor reads its actual post-elaboration
+impure LCNF and selects the second x86-64 integer argument register RSI.
+It emits a separate ELF object, with the same fixed symbol name
+l4lc_from_lcnf; the two standalone objects are tested separately and
+must not be linked together into one program due to duplicate symbols.
+
+A separately kernel-checked theorem states:
+
+    returnSecond a b = FromLCNF.eval extractedSecond a b
+
+It references the actual generated extraction, so choosing the wrong
+register would fail the source theorem. CI checks the native instruction
+decoding, exact output bytes, 200,000 native two-argument calls, boundary
+input pairs, and rejection of attempts to validate a first-argument
+object with the second-argument certificate or vice versa.
+
+Commands:
+
+    lake exe lean4leanFromLCNF returnSecond .lake/build/native/from_lcnf_second.o
+    lake exe lean4leanCheckNative returnSecond .lake/build/native/from_lcnf_second.o
+
+The checked fragment remains only direct, safe, first-order scalar
+returns. No general branch/call/resource/erasure correctness theorem or
+physical heap allocation claim is implied. Selection of RDI versus RSI
+is a real compiler-IR decision; the binary encodings remain a fixed
+tiny target subset, not yet a general instruction scheduler.

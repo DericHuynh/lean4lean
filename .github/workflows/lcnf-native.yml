@@ -9,6 +9,7 @@ on:
       - "Lean4LeanCompiler.lean"
       - "lakefile.toml"
       - "tests/native-from-lcnf.c"
+      - "tests/native-from-lcnf-second.c"
       - ".github/workflows/lcnf-native.yml"
   workflow_dispatch:
 
@@ -53,3 +54,25 @@ jobs:
             .lake/build/native/from_lcnf.o \
             -o .lake/build/native/from-lcnf-test
           .lake/build/native/from-lcnf-test
+      - name: Emit second-argument native code from another ordinary Lean declaration
+        run: |
+          lake exe lean4leanFromLCNF returnSecond .lake/build/native/from_lcnf_second.o
+          lake exe lean4leanCheckNative returnSecond .lake/build/native/from_lcnf_second.o
+          objdump -dr .lake/build/native/from_lcnf_second.o
+      - name: Fail closed when source certificate does not match the ELF object
+        run: |
+          if lake exe lean4leanCheckNative returnSecond .lake/build/native/from_lcnf.o; then
+            echo "ERROR: first-argument object accepted for second-argument source"
+            exit 1
+          fi
+          if lake exe lean4leanCheckNative returnScalar .lake/build/native/from_lcnf_second.o; then
+            echo "ERROR: second-argument object accepted for first-argument source"
+            exit 1
+          fi
+      - name: Validate two-argument SysV ABI with randomized calls
+        run: |
+          cc -std=c11 -O3 -fno-lto -Wall -Wextra -Werror \
+            -Wl,-z,noexecstack \
+            tests/native-from-lcnf-second.c .lake/build/native/from_lcnf_second.o \
+            -o .lake/build/native/from-lcnf-second-test
+          .lake/build/native/from-lcnf-second-test
