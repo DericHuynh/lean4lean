@@ -37,3 +37,13 @@ name = "Lean4LeanCompiler"
 [[lean_exe]]
 name = "lean4leanCompilerDemo"
 root = "Lean4LeanCompiler.Examples"
+
+# Linux/x86-64 ELF object generator, written in Lean and opt-in.
+[[lean_exe]]
+name = "lean4leanNative"
+root = "Lean4LeanCompiler.Native.Main"
+
+# Separate release-build benchmark of theorem-selected Lean serialization.
+[[lean_exe]]
+name = "lean4leanConcatBench"
+root = "Lean4LeanCompiler.ConcatBenchMain"

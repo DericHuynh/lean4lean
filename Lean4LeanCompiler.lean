@@ -7,3 +7,5 @@ import Lean4LeanCompiler.ResourceProofs
 import Lean4LeanCompiler.ResourceTests
 import Lean4LeanCompiler.Examples
 import Lean4LeanCompiler.SourceProofs
+import Lean4LeanCompiler.Native
+import Lean4LeanCompiler.VerifiedJoin

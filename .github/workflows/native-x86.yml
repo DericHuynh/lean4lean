@@ -1,0 +1,55 @@
+name: Native ELF x86-64 Compiler
+
+on:
+  push:
+    branches:
+      - experiment/native-x86-elf
+  pull_request:
+    paths:
+      - "Lean4LeanCompiler/**"
+      - "Lean4LeanCompiler.lean"
+      - "tests/native-elf-abi.c"
+      - "lakefile.toml"
+      - ".github/workflows/native-x86.yml"
+  workflow_dispatch:
+
+jobs:
+  native-elf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: No admitted proof dependencies in new compiler code
+        run: |
+          if grep -R -nE '^[[:space:]]*(sorry|admit|axiom)([[:space:]]|$)' Lean4LeanCompiler; then
+            echo "Proof admission detected"
+            exit 1
+          fi
+      - name: Compile all proof modules and both compiler CLIs
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: "false"
+          build: "true"
+          build-args: "Lean4LeanCompiler lean4leanCompilerDemo lean4leanNative lean4leanConcatBench"
+          use-mathlib-cache: "false"
+      - name: Emit real x86-64 ELF relocatable object directly from Lean
+        run: |
+          mkdir -p .lake/build/native
+          lake exe lean4leanNative .lake/build/native/l4lc_kernels.o
+          file .lake/build/native/l4lc_kernels.o
+          readelf -hW -SW -sW .lake/build/native/l4lc_kernels.o
+          nm -g .lake/build/native/l4lc_kernels.o
+          objdump -dr .lake/build/native/l4lc_kernels.o
+      - name: Link native object with independent test harness
+        run: |
+          cc -std=c11 -O3 -fno-lto -Wall -Wextra -Werror \
+            -Wl,-z,noexecstack tests/native-elf-abi.c \
+            .lake/build/native/l4lc_kernels.o \
+            -o .lake/build/native/native-abi-test
+          .lake/build/native/native-abi-test
+      - name: Repeat release-build baseline versus native leaf calls
+        run: .lake/build/native/native-abi-test --bench
+      - name: Execute original compiled Lean differential regression
+        run: lake exe lean4leanCompilerDemo
+      - name: Compare compiled Lean stock and csimp-selected serialization
+        run: lake exe lean4leanConcatBench
