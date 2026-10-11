@@ -121,4 +121,71 @@ example :
     runCopy copyInstructions
       { src := [1, 2, 3, 4], dst := [0, 0, 0] } = none := by decide
 
+
+/-- Call expansion: sub rsp,8; call l4lc_add64; add rsp,8;
+    add rax,1; ret. CALL's disp32 is a zero placeholder to be patched
+    using a real ELF R_X86_64_PLT32 relocation with addend -4.
+    On function entry rsp%16=8; before CALL it must be 0. -/
+def callCode : List UInt8 :=
+  [0x48, 0x83, 0xec, 0x08, 0xe8, 0, 0, 0, 0,
+   0x48, 0x83, 0xc4, 0x08, 0x48, 0x83, 0xc0, 0x01, 0xc3]
+
+inductive CallInstruction where
+  | alignStack | callAdd | restoreStack | incrementResult | ret
+  deriving DecidableEq, Inhabited
+
+def callInstructions : List CallInstruction :=
+  [.alignStack, .callAdd, .restoreStack, .incrementResult, .ret]
+
+def decodeCall (bytes : List UInt8) : Option (List CallInstruction) :=
+  if bytes == callCode then some callInstructions else none
+
+theorem decodeCall_emitted :
+    decodeCall callCode = some callInstructions := by decide
+
+structure CallRegisters where
+  rdi : UInt64
+  rsi : UInt64
+  rax : UInt64 := 0
+  rspMod16 : Nat := 8
+
+/-- Stack-alignment and one known direct-call summary. This is an abstract
+    model of System V ABI, NOT a theorem about the system assembler/linker. -/
+def stepCall (regs : CallRegisters) : CallInstruction → Option CallRegisters
+  | .alignStack =>
+      if regs.rspMod16 == 8 then
+        some { regs with rspMod16 := 0 }
+      else none
+  | .callAdd =>
+      if regs.rspMod16 == 0 then
+        some { regs with rax := regs.rdi + regs.rsi }
+      else none
+  | .restoreStack =>
+      if regs.rspMod16 == 0 then
+        some { regs with rspMod16 := 8 }
+      else none
+  | .incrementResult =>
+      some { regs with rax := regs.rax + 1 }
+  | .ret =>
+      if regs.rspMod16 == 8 then some regs else none
+
+def runCall : List CallInstruction → CallRegisters → Option CallRegisters
+  | [], regs => some regs
+  | i :: is, regs => do
+      let next ← stepCall regs i
+      runCall is next
+
+/-- The modeled known-target call preserves both argument registers,
+    16-byte caller stack alignment and modular arithmetic. -/
+theorem callCode_correct (a b : UInt64) :
+    (runCall callInstructions { rdi := a, rsi := b }).map
+      (fun regs => (regs.rax, regs.rspMod16)) =
+      some (a + b + 1, 8) := by rfl
+
+/-- If the caller starts with incorrect stack alignment, reject the
+    calling contract instead of treating arbitrary stack contents as valid. -/
+example (a b : UInt64) :
+    runCall callInstructions { rdi := a, rsi := b, rspMod16 := 0 } = none := by
+  rfl
+
 end Lean4LeanCompiler.Native.ISA

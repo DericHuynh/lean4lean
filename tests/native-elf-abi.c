@@ -15,6 +15,7 @@
 
 extern uint64_t l4lc_add64(uint64_t a, uint64_t b);
 extern void l4lc_copy4(const unsigned char *src, unsigned char *dst);
+extern uint64_t l4lc_add_then_inc(uint64_t a, uint64_t b);
 
 #if defined(__GNUC__) || defined(__clang__)
 #define NOINLINE __attribute__((noinline))
@@ -41,10 +42,13 @@ static int unit_tests(void) {
     for (size_t j = 0; j < sizeof(boundaries)/sizeof(boundaries[0]); ++j)
       if (l4lc_add64(boundaries[i], boundaries[j]) !=
           reference_add64(boundaries[i], boundaries[j])) return 1;
+      else if (l4lc_add_then_inc(boundaries[i], boundaries[j]) !=
+          (uint64_t)(reference_add64(boundaries[i], boundaries[j]) + UINT64_C(1))) return 4;
 
   for (unsigned i=0; i<200000; ++i) {
     uint64_t a = random64(), b = random64();
     if (l4lc_add64(a,b) != reference_add64(a,b)) return 2;
+    if (l4lc_add_then_inc(a,b) != (uint64_t)(reference_add64(a,b)+UINT64_C(1))) return 5;
   }
 
   /* Each native call receives 4 readable and 4 writable bytes.
@@ -93,7 +97,7 @@ int main(int argc, char **argv) {
     fprintf(stderr,"native ELF ABI test failure: %d\n",rc);
     return rc;
   }
-  puts("PASS: native ELF ABI, 200000 arithmetic cases, 40000 copy/overlap cases");
+  puts("PASS: native ELF call/relocation ABI, 200000 arithmetic/call cases, 40000 copy/overlap cases");
   if (argc>1 && strcmp(argv[1],"--bench")==0) {
     uint64_t iterations=8000000;
     for (unsigned rep=0;rep<5;rep++) {

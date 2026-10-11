@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - experiment/native-x86-elf
+      - experiment/native-relocations
   pull_request:
     paths:
       - "Lean4LeanCompiler/**"
@@ -38,6 +39,8 @@ jobs:
           lake exe lean4leanNative .lake/build/native/l4lc_kernels.o
           file .lake/build/native/l4lc_kernels.o
           readelf -hW -SW -sW .lake/build/native/l4lc_kernels.o
+          readelf -rW .lake/build/native/l4lc_kernels.o
+          readelf -rW .lake/build/native/l4lc_kernels.o | grep -E 'R_X86_64_PLT32.*l4lc_add64'
           nm -g .lake/build/native/l4lc_kernels.o
           objdump -dr .lake/build/native/l4lc_kernels.o
       - name: Link native object with independent test harness

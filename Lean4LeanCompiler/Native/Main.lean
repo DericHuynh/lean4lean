@@ -13,7 +13,7 @@ def main (args : List String) : IO UInt32 := do
     IO.FS.writeBinFile (System.FilePath.mk file)
       (Lean4LeanCompiler.Native.ELF.compile Lean4LeanCompiler.Native.registered)
     IO.println s!"direct-native: emitted {Lean4LeanCompiler.Native.ELF.objectBytes.length} ELF64/x86-64 bytes to {file}"
-    IO.println "symbols: l4lc_add64 (SysV u64,u64->u64), l4lc_copy4 (SysV pointer,pointer->void)"
+    IO.println "symbols: l4lc_add64, l4lc_copy4, l4lc_add_then_inc (via ELF relocation)"
     IO.println "source proof: Lean kernel; instruction proof: modeled x86 subset; CPU/ELF loader not verified"
     return 0
   | _ =>
