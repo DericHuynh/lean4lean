@@ -6,16 +6,22 @@ open Lean
 open Lean.Compiler.LCNF
 
 @[inline] def fastAppend3 (a b c : ByteArray) : ByteArray :=
-  let dst := ByteArray.emptyWithCapacity (a.size + b.size + c.size)
-  let dst := dst.fastAppend a
-  let dst := dst.fastAppend b
-  dst.fastAppend c
+  if a.size + b.size + c.size < 16384 then
+    (a.fastAppend b).fastAppend c
+  else
+    let dst := ByteArray.emptyWithCapacity (a.size + b.size + c.size)
+    let dst := dst.fastAppend a
+    let dst := dst.fastAppend b
+    dst.fastAppend c
 
 theorem fastAppend3_eq_append (a b c : ByteArray) :
     fastAppend3 a b c = (a ++ b) ++ c := by
   have he : ByteArray.emptyWithCapacity (a.size + b.size + c.size) =
       ByteArray.empty := rfl
-  simp [fastAppend3, ByteArray.fastAppend_eq, he]
+  unfold fastAppend3
+  split_ifs
+  · simp [ByteArray.fastAppend_eq]
+  · simp [ByteArray.fastAppend_eq, he]
 
 #print axioms fastAppend3_eq_append
 
