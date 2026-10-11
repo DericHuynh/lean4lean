@@ -26,4 +26,8 @@ def smoke : IO Unit := do
 
 end Lean4LeanCompiler.MorphicModeExamples
 
+example (a b c : Lean.Compiler.LCNF.MorphicBorrow.Mode) :
+    (a.join b).join c = a.join (b.join c) :=
+  Lean.Compiler.LCNF.MorphicBorrow.Mode.join_assoc a b c
+
 def main : IO Unit := Lean4LeanCompiler.MorphicModeExamples.smoke
