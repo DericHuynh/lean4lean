@@ -22,6 +22,13 @@ theorem fastAppend3_eq_append (a b c : ByteArray) :
   · simp [fastAppend3, h, ByteArray.fastAppend_eq]
   · simp [fastAppend3, h, ByteArray.fastAppend_eq, he]
 
+theorem fastAppend3_size (a b c : ByteArray) :
+    (fastAppend3 a b c).size = a.size + b.size + c.size := by
+  rw [fastAppend3_eq_append]
+  simp [ByteArray.size_append]
+
+#print axioms fastAppend3_size
+
 #print axioms fastAppend3_eq_append
 
 private def helperName : Name :=
