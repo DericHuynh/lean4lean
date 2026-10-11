@@ -42,3 +42,8 @@ root = "Lean4LeanCompiler.Examples"
 [[lean_exe]]
 name = "lean4leanNative"
 root = "Lean4LeanCompiler.Native.Main"
+
+# Separate release-build benchmark of theorem-selected Lean serialization.
+[[lean_exe]]
+name = "lean4leanConcatBench"
+root = "Lean4LeanCompiler.ConcatBenchMain"

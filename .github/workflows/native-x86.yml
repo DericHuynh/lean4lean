@@ -30,7 +30,7 @@ jobs:
         with:
           auto-config: "false"
           build: "true"
-          build-args: "Lean4LeanCompiler lean4leanCompilerDemo lean4leanNative"
+          build-args: "Lean4LeanCompiler lean4leanCompilerDemo lean4leanNative lean4leanConcatBench"
           use-mathlib-cache: "false"
       - name: Emit real x86-64 ELF relocatable object directly from Lean
         run: |
@@ -51,3 +51,5 @@ jobs:
         run: .lake/build/native/native-abi-test --bench
       - name: Execute original compiled Lean differential regression
         run: lake exe lean4leanCompilerDemo
+      - name: Compare compiled Lean stock and csimp-selected serialization
+        run: lake exe lean4leanConcatBench
