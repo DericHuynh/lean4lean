@@ -1,0 +1,25 @@
+name: Inspect Lean scalar arithmetic LCNF
+
+on:
+  push:
+    branches: [experiment/lcnf-arithmetic]
+  pull_request:
+    paths:
+      - "Lean4LeanCompiler/**"
+      - ".github/workflows/lcnf-arithmetic.yml"
+      - "lakefile.toml"
+  workflow_dispatch:
+
+jobs:
+  inspect-arithmetic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect actual Lean v4.33.0-rc2 UInt64 code
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: "false"
+          build: "true"
+          build-args: "Lean4LeanCompiler.NativeArithmeticExamples"
+          use-mathlib-cache: "false"
