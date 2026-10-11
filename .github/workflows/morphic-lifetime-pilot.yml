@@ -1,0 +1,30 @@
+name: Morphic Lifetime Pilot
+on:
+  push:
+    branches: [experiment/morphic-lifetime-probe]
+  pull_request:
+    paths:
+      - "Lean4LeanCompiler/MorphicLifetimePilot.lean"
+      - "Lean4LeanCompiler/MorphicPilotExamples.lean"
+      - ".github/workflows/morphic-lifetime-pilot.yml"
+      - "lakefile.toml"
+  workflow_dispatch:
+
+jobs:
+  test-mode-analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Lean proof file contains no new admits
+        run: |
+          if grep -nE '^[[:space:]]*(sorry|admit|axiom)([[:space:]]|$)' Lean4LeanCompiler/MorphicLifetimePilot.lean; then exit 1; fi
+      - name: Build and run borrowing pilot with pinned Lean
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: "false"
+          build: "true"
+          build-args: "lean4leanMorphicPilot"
+          use-mathlib-cache: "false"
+      - name: Execute compiled ordinary Lean semantics
+        run: lake exe lean4leanMorphicPilot

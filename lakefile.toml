@@ -57,3 +57,8 @@ root = "Lean4LeanCompiler.Native.FromLCNFMain"
 [[lean_exe]]
 name = "lean4leanCheckNative"
 root = "Lean4LeanCompiler.Native.CheckFromLCNFMain"
+
+# Pinned Lean compiler pilot for automatic inferred-borrow modes.
+[[lean_exe]]
+name = "lean4leanMorphicPilot"
+root = "Lean4LeanCompiler.MorphicPilotExamples"
