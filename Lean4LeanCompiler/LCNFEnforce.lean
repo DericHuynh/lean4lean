@@ -10,7 +10,11 @@ namespace Lean4LeanCompiler.LCNFEnforce
 open Lean
 open Lean.Compiler.LCNF
 
-def targetPrefix : String := "Lean4LeanCompiler.StrictEnforced."
+/-- Only explicitly selected declarations are checked. Generated boxed
+    entry points are NOT certified and must not be misreported as such. -/
+def selected (name : Name) : Bool :=
+  name.toString == "Lean4LeanCompiler.StrictEnforced.identity" ||
+  name.toString == "Lean4LeanCompiler.StrictEnforced.uncheckedRead"
 
 def enforcePass : Pass where
   phase := .impure
@@ -19,7 +23,7 @@ def enforcePass : Pass where
   shouldAlwaysRunCheck := true
   run := fun decls => do
     for decl in decls do
-      if decl.name.toString.startsWith targetPrefix then
+      if selected decl.name then
         match Lean4LeanCompiler.LCNFStrict.validate decl with
         | .ok () =>
           logInfo m!"[l4lc-strict] accepted {decl.name}; syntactic-only; machineCertificate=false"
