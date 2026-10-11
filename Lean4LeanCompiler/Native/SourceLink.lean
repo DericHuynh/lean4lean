@@ -11,7 +11,7 @@ namespace Lean4LeanCompiler.Native.SourceLink
 /-- Exact source-value relation to the modeled x86 argument register. -/
 theorem returnScalar_matches_native_model (x : UInt64) :
     Lean4LeanCompiler.NativeExamples.returnScalar x =
-      Lean4LeanCompiler.Native.FromLCNF.eval .rdi x 0 := by
+      Lean4LeanCompiler.Native.FromLCNF.eval Lean4LeanCompiler.NativeExamples.extractedScalar x 0 := by
   rfl
 
 /-- The concrete bytes for this supported modeled return instruction
