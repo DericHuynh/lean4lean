@@ -1,4 +1,5 @@
 import Lean4LeanCompiler.ProbeAppend
+import Lean4LeanCompiler.AppendFusionPilot
 
 namespace Lean4LeanCompiler.ProbeExamples
 
