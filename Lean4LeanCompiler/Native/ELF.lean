@@ -105,21 +105,26 @@ def layoutValid : Bool :=
   objectBytes.length == headersOffset + 5 * 64 &&
   textBytes.length == 12
 
+set_option maxRecDepth 16384 in
 theorem layoutValid_true : layoutValid = true := by decide
 
+set_option maxRecDepth 16384 in
 theorem magic_correct :
     objectBytes.take 4 = [127, 69, 76, 70] := by decide
 
+set_option maxRecDepth 16384 in
 theorem code_span_correct :
     (objectBytes.drop textOffset).take textBytes.length = textBytes := by decide
 
 /-- Together with ISA.decode* and Certified.sourceCorrect, code_span_correct
     ties the checked instruction subset to the exact emitted .text bytes.
     This does NOT prove the behavior of a real CPU or ELF loader. -/
+set_option maxRecDepth 16384 in
 theorem emitted_add_opcode :
     ISA.decodeAdd ((objectBytes.drop textOffset).take ISA.addCode.length) =
       some ISA.addInstructions := by decide
 
+set_option maxRecDepth 16384 in
 theorem emitted_copy_opcode :
     ISA.decodeCopy
       ((objectBytes.drop (textOffset + ISA.addCode.length)).take ISA.copyCode.length) =
