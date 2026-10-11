@@ -1,4 +1,5 @@
 import Lean.Compiler.LCNF.Passes
+import Init.Data.ByteArray.Lemmas
 
 namespace Lean4LeanCompiler.AppendFusionPilot
 open Lean
@@ -9,6 +10,12 @@ open Lean.Compiler.LCNF
   let dst := dst.fastAppend a
   let dst := dst.fastAppend b
   dst.fastAppend c
+
+theorem fastAppend3_eq_append (a b c : ByteArray) :
+    fastAppend3 a b c = (a ++ b) ++ c := by
+  simp [fastAppend3, ByteArray.fastAppend_eq, ByteArray.empty_append]
+
+#print axioms fastAppend3_eq_append
 
 private def helperName : Name :=
   Name.str (Name.str (Name.mkSimple "Lean4LeanCompiler") "AppendFusionPilot") "fastAppend3"
