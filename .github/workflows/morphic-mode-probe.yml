@@ -1,0 +1,24 @@
+name: Morphic mode probe
+on:
+  push:
+    branches: [experiment/morphic-mode-probe]
+  workflow_dispatch:
+jobs:
+  pinned:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build morphological SCC mode solver with pinned Lean
+        uses: leanprover/lean-action@v1
+        with:
+          auto-config: "false"
+          build: "true"
+          build-args: "lean4leanMorphicProbe"
+          use-mathlib-cache: "false"
+      - name: Check real compiled program and inferred annotations
+        run: |
+          lake exe lean4leanMorphicProbe > /tmp/morphic.log 2>&1
+          cat /tmp/morphic.log
+          grep -F "Morphic mode probe passed" /tmp/morphic.log
+          grep -F "retained-borrow Lean4LeanCompiler.MorphicModeExamples.wrap" /tmp/morphic.log

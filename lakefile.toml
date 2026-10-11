@@ -57,3 +57,7 @@ root = "Lean4LeanCompiler.Native.FromLCNFMain"
 [[lean_exe]]
 name = "lean4leanCheckNative"
 root = "Lean4LeanCompiler.Native.CheckFromLCNFMain"
+
+[[lean_exe]]
+name = "lean4leanMorphicProbe"
+root = "Lean4LeanCompiler.MorphicModeExamples"
