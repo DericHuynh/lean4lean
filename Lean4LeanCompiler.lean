@@ -6,3 +6,4 @@ import Lean4LeanCompiler.ResourceModel
 import Lean4LeanCompiler.ResourceProofs
 import Lean4LeanCompiler.ResourceTests
 import Lean4LeanCompiler.Examples
+import Lean4LeanCompiler.SourceProofs
