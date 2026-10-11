@@ -69,7 +69,7 @@ def recognize (d : Decl .impure) : Option Register := do
 theorem encoded_operand_semantics (r : Register) (a b : UInt64) :
     decode (encode r) = some r ∧
     eval r a b = (if r == .rdi then a else b) := by
-  cases r <;> decide
+  cases r <;> exact ⟨rfl, rfl⟩
 
 /-- The persistent entry records exactly what was checked when compilation
     ran, not a hash of an unrelated filename or user-provided AST. -/
