@@ -27,6 +27,9 @@ private def valueText : LetValue .pure → String
   | .const name _ args _ => s!"const {name}: {(args.toList.map argText)}"
   | .fvar id args => s!"fvar {id.name}: {(args.toList.map argText)}"
   | .lit .. => "literal"
+  | .proj name i src _ => s!"proj {name} {i} {src.name}"
+  | .oproj i x _ => s!"oproj {i} {x.name}"
+  | .sproj i off x _ => s!"sproj {i} {off} {x.name}"
   | _ => "other"
 
 partial def dumpBase : Code .pure → List String
