@@ -18,6 +18,27 @@ partial def collectBase : Code .pure → List String
     alts.toList.flatMap (fun alt => collectBase alt.getCode)
   | .return .. | .jmp .. | .unreach .. => []
 
+private def argText : Arg .pure → String
+  | .fvar id => id.name.toString
+  | .erased => "_"
+  | .type _ _ => "TYPE"
+
+private def valueText : LetValue .pure → String
+  | .const name _ args _ => s!"const {name}: {(args.toList.map argText)}"
+  | .fvar id args => s!"fvar {id.name}: {(args.toList.map argText)}"
+  | .lit .. => "literal"
+  | _ => "other"
+
+partial def dumpBase : Code .pure → List String
+  | .let decl k =>
+      (s!"{decl.fvarId.name} = {valueText decl.value}") :: dumpBase k
+  | .fun (.mk _ _ _ _ body) k _ | .jp (.mk _ _ _ _ body) k =>
+      dumpBase body ++ dumpBase k
+  | .cases (.mk _ _ _ alts) =>
+      alts.toList.flatMap (fun alt => dumpBase alt.getCode)
+  | .return x => [s!"return {x.name}"]
+  | .jmp .. | .unreach .. => []
+
 def probeBasePass : Pass where
   phase := .base
   phaseOut := .base
@@ -41,6 +62,7 @@ def afterInstances : Pass where
       if decl.name.toString.startsWith "Lean4LeanCompiler.ProbeExamples." then
         if let .code body := decl.value then
           logInfo m!"[append-after-instances] {decl.name}: {collectBase body}"
+          logInfo m!"[append-structure] {decl.name}: {(dumpBase body).take 25}"
     return decls
 
 @[cpass] meta def installAfterInstances : PassInstaller :=
