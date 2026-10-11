@@ -56,13 +56,35 @@ theorem modeledCopy_matchesSource (cert : CertifiedCopy4) (a b c d : UInt8) :
     _ = some [a, b, c, d] := ISA.copyCode_exact a b c d
     _ = _ := (cert.sourceCorrect a b c d).symm
 
+
+/-- A separate ordinary Lean declaration with a direct call relationship. -/
+def sourceAddThenInc (a b : UInt64) : UInt64 := sourceAdd64 a b + 1
+
+structure CertifiedCall where
+  source : UInt64 → UInt64 → UInt64
+  sourceCorrect : ∀ a b, source a b = a + b + 1
+
+def callRegistration : CertifiedCall :=
+  { source := sourceAddThenInc
+    sourceCorrect := by intro a b; rfl }
+
+theorem modeledCall_matchesSource (cert : CertifiedCall) (a b : UInt64) :
+    (ISA.runCall ISA.callInstructions { rdi := a, rsi := b }).map
+      (fun regs => regs.rax) = some (cert.source a b) := by
+  calc
+    _ = some (a + b + 1) := by rfl
+    _ = some (cert.source a b) := by rw [cert.sourceCorrect]
+
+#print axioms Lean4LeanCompiler.Native.modeledCall_matchesSource
+
 /-- Native emission is available only for the certified registrations above. -/
 structure CertifiedProgram where
   add : CertifiedAdd
   copy : CertifiedCopy4
+  call : CertifiedCall
 
 def registered : CertifiedProgram :=
-  { add := addRegistration, copy := copyRegistration }
+  { add := addRegistration, copy := copyRegistration, call := callRegistration }
 
 #print axioms Lean4LeanCompiler.Native.modeledAdd_matchesSource
 #print axioms Lean4LeanCompiler.Native.modeledCopy_matchesSource
