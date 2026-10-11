@@ -25,8 +25,8 @@ meta def elabScalarExtraction : CommandElab
     let some reg := FromLCNF.recognize d
       | throwError "unsupported scalar LCNF declaration {name}; no native fallback"
     let definition ← match reg with
-      | .rdi => `(def extractedScalar : Lean4LeanCompiler.Native.FromLCNF.Register := .rdi)
-      | .rsi => `(def extractedScalar : Lean4LeanCompiler.Native.FromLCNF.Register := .rsi)
+      | .rdi => `(def _root_.Lean4LeanCompiler.NativeExamples.extractedScalar : Lean4LeanCompiler.Native.FromLCNF.Register := .rdi)
+      | .rsi => `(def _root_.Lean4LeanCompiler.NativeExamples.extractedScalar : Lean4LeanCompiler.Native.FromLCNF.Register := .rsi)
     elabCommand definition
     logInfo m!"[l4lc-native] checked actual LCNF extraction for {name}: {repr reg}"
   | _ => throwUnsupportedSyntax

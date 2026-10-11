@@ -9,5 +9,6 @@ namespace Lean4LeanCompiler.NativeExamples
 @[noinline] def returnScalar (x : UInt64) : UInt64 := x
 
 #l4lc_extract_scalar returnScalar
+#check Lean4LeanCompiler.NativeExamples.extractedScalar
 
 end Lean4LeanCompiler.NativeExamples
