@@ -68,6 +68,21 @@ def zeroRcPass : Pass where
       result := result.push next
     return result
 
+/-- Executable unit test of the actual LCNF rewrite on synthetic IR.
+    Its success is not a proof of source-language or runtime correctness. -/
+def rcPassSmoke : IO Unit := do
+  let x : FVarId := ⟨Name.mkSimple "rc_test"⟩
+  let zero : Code .impure := .inc x 0 false false (.return x)
+  let positive : Code .impure := .inc x 1 false false (.return x)
+  let nested : Code .impure :=
+    .inc x 0 false false (.dec x 0 false false none (.inc x 1 false false (.return x)))
+  unless (eraseZeroRC zero).size == 0 do
+    throw <| IO.userError "zero inc was not removed"
+  unless (eraseZeroRC positive).size == 1 do
+    throw <| IO.userError "positive inc was incorrectly removed"
+  unless (eraseZeroRC nested).size == 1 do
+    throw <| IO.userError "nested zero RC instructions were not removed"
+
 /-- Pinned upstream Lean pass name is coalesceRc. -/
 @[cpass] meta def installZeroRc : PassInstaller :=
   PassInstaller.installBefore .impure (Name.mkSimple "coalesceRc") (fun _ => zeroRcPass)

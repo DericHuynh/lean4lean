@@ -50,3 +50,7 @@ If a model theorem fails, the branch does not meet its verification checkpoint. 
 ## Next substantial milestone
 
 Build a pinned-version `Lean.Compiler.LCNF.Decl` adapter and evidence checker tied to actual post-erasure instructions; validate borrow liveness/ownership, storage disjointness, and destination initialization. This is necessary before any verified compiler optimization or no-allocation claim for an ordinary Lean declaration. Then add explicit physical allocation instrumentation and benchmark release builds against optimized stock Lean. Do not silently accept stock fallback under a strict resource contract.
+
+## CI evidence (2026-10-10)
+
+The dedicated GitHub Actions job compiled the pinned Lean 4 files and passed its differential executable on commit 2954fbb0. It reported only the logical axioms `propext` and `Quot.sound` for the listed model theorems, not a new program-correctness axiom. These checks establish that the Lean sources are elaborated and that the kernel accepts the model proofs, but they do not verify the C/LLVM backend or the operational correspondence of model and Lean byte operations. Full existing-checker CI is tracked separately.

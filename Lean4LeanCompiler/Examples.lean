@@ -50,6 +50,7 @@ def bumpList (xs : List UInt8) : List UInt8 :=
 
 /-- Tests actual Lean ByteArray behavior; NOT physical allocation counts. -/
 def smokeTest : IO Unit := do
+  Lean4LeanCompiler.LCNFExperimental.rcPassSmoke
   let source := ([11, 22, 33, 44] : List UInt8).toByteArray
   let copied := copyFour source
   unless copied.size == 4 && copied.get! 0 == 11 && copied.get! 3 == 44 do
