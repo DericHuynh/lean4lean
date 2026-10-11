@@ -13,7 +13,9 @@ open Lean.Compiler.LCNF
 
 theorem fastAppend3_eq_append (a b c : ByteArray) :
     fastAppend3 a b c = (a ++ b) ++ c := by
-  simp [fastAppend3, ByteArray.fastAppend_eq, ByteArray.empty_append]
+  have he : ByteArray.emptyWithCapacity (a.size + b.size + c.size) =
+      ByteArray.empty := rfl
+  simp [fastAppend3, ByteArray.fastAppend_eq, he]
 
 #print axioms fastAppend3_eq_append
 
