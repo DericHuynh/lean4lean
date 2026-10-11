@@ -45,4 +45,11 @@ def writeFourInto (src dst : ByteArray) : Option ByteArray := Id.run do
 def bumpList (xs : List UInt8) : List UInt8 :=
   xs.map (· + 1)
 
+/-- An idiomatic three-way serialization join in stock Lean. -/
+def join3 (a b c : ByteArray) : ByteArray := (a ++ b) ++ c
+
+/-- Retained stock-compiled entry point, built before the csimp theorem.
+    The noinline wrapper prevents subsequent compiler rewriting via inlining. -/
+@[noinline] def join3Baseline (a b c : ByteArray) : ByteArray := join3 a b c
+
 end Lean4LeanCompiler.Reference
