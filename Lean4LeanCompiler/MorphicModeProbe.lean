@@ -26,6 +26,8 @@ end Lean.Compiler
 
 namespace Lean.Compiler.LCNF.MorphicBorrow
 
+open ImpureType
+
 /-- Mode constraints are ordered by required ownership. A retained field needs
     a new owning reference before its source borrow can end. -/
 inductive Mode where
@@ -56,7 +58,7 @@ def Mode.requiresRetain : Mode → Bool
   | _ => false
 
 theorem Mode.retain_requiresRetain :
-    Mode.requiresRetain .retain = true := rfl
+    Mode.requiresRetain .retain = true := by simp [Mode.requiresRetain]
 
 private abbrev Modes := Std.HashMap Name (Array Mode)
 
@@ -248,17 +250,3 @@ builtin_initialize
 end Lean.Compiler.LCNF.MorphicBorrow
 
 
-namespace Lean4LeanCompiler.MorphicModeProbe
-
-open Lean
-open Lean.Compiler.LCNF
-
-@[cpass] meta def installModes : PassInstaller :=
-  PassInstaller.installBefore .impure (Name.mkSimple "inferBorrow")
-    (fun _ => Lean.Compiler.LCNF.MorphicBorrow.inferMorphicBorrow)
-
-@[cpass] meta def auditModes : PassInstaller :=
-  PassInstaller.installAfter .impure (Name.mkSimple "inferBorrow")
-    (fun _ => Lean.Compiler.LCNF.MorphicBorrow.auditMorphicBorrow)
-
-end Lean4LeanCompiler.MorphicModeProbe
