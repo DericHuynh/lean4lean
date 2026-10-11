@@ -23,12 +23,13 @@ Reproduce on Linux/x86-64:
 
 ## Binary and ABI
 
-The generated object is 552 bytes, ELF64 little-endian ET_REL, x86-64, with .text, .symtab, .strtab and .shstrtab sections and two exported symbols. It contains no direct external calls or relocations.
+The original leaf-only object was 552 bytes. The relocation-capable object is 712 bytes, ELF64 little-endian ET_REL, x86-64, with .text, .symtab, .strtab and .shstrtab sections and two exported symbols. It includes an inter-function call and one R_X86_64_PLT32 ELF relocation.
 
 | Symbol | SysV AMD64 calling convention | Preconditions |
 |---|---|---|
 | l4lc_add64 | rdi, rsi: uint64 → rax: uint64 | Wrapping addition modulo 2^64 |
 | l4lc_copy4 | rdi: readable uint8*, rsi: writable uint8* → void | Four readable and four writable bytes, live/valid for the call |
+| l4lc_add_then_inc | rdi, rsi: uint64 → rax: uint64 | Internally CALL l4lc_add64 with 16-byte stack alignment, then increment |
 
 Copy4 loads the entire 32-bit value into EAX before writing it into the destination. The emitted code does not dynamically check bounds or allocation ownership. The native ABI does not accept Lean ByteArray objects directly: the caller passes raw native pointers. Test harness copy cases include valid pointer overlaps, but their physical alias/ownership properties are *not* proved by the current list-based model.
 
@@ -67,3 +68,7 @@ Native integration validation: 200,000 randomized arithmetic cases, all selected
 - Safe destination passing: https://arxiv.org/abs/2601.08529
 
 These are *research directions*, not formal certificates for the current implementation. Remaining engineering priority: import actual Lean LCNF for the supported fragment, reject all unvalidated paths in strict mode, carry certificates through transformations, add relocations/interoperability, and benchmark real Lean code compilation and execution against optimized stock Lean rather than a fictional naïve baseline.
+
+## Inter-function call and relocation milestone
+
+The ELF exporter adds a complete .rela.text section and emits one R_X86_64_PLT32 relocation (symbol index 2; addend -4; displacement offset 15 within .text). It emits a call wrapper that aligns the System V stack, calls the certified addition function and restores stack state. Lean proves a small CALL/stack-state model, the source function equality, and the relocation payload bytes. The external system linker resolves this relocation and the linked executable is tested. The machine semantics and linker/loader remain outside the Lean proof boundary. Reference: System V AMD64 ABI relocation types and ELF gABI; see primary sources above.
