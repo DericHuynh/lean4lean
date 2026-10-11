@@ -41,7 +41,7 @@ jobs:
         run: |
           lake exe lean4leanCheckNative .lake/build/native/from_lcnf.o
           cp .lake/build/native/from_lcnf.o .lake/build/native/corrupt.o
-          printf '\\0' | dd of=.lake/build/native/corrupt.o bs=1 seek=64 count=1 conv=notrunc
+          printf '\0' | dd of=.lake/build/native/corrupt.o bs=1 seek=64 count=1 conv=notrunc
           if lake exe lean4leanCheckNative .lake/build/native/corrupt.o; then
             echo "ERROR: artifact validator accepted corrupted native bytes"
             exit 1

@@ -1,88 +1,97 @@
-# Experimental real-LCNF-to-ELF scalar compiler (checkpoint)
+# Source-bound native code from actual Lean LCNF
 
-## What this implements
+The new integrated compiler path is written in Lean 4, pinned to
+leanprover/lean4:v4.33.0-rc2. It preserves the upstream checker and
+its command-line behavior.
 
-The previous fixed proof-registered kernel backend emitted native templates
-selected by Lean source-level theorems. This new compiler path obtains the
-selection from **actual Lean 4 compiler IR**.
+## Real end-to-end path
 
-1. Lean elaborates and compiles an ordinary declaration from
-   Lean4LeanCompiler/NativeExamples.lean through the pinned v4.33.0-rc2 compiler.
-2. An opt-in cpass runs on the compiler's **impure LCNF declarations**, after
-   stock reset/reuse, borrowing, RC insertion, and RC coalescing.
-3. The LCNF recognizer accepts only safe, nonrecursive, scalar UInt64 direct
-   returns of a declared input parameter, with 1 or 2 recognized scalar
-   parameters. It rejects unsupported calls, branches, effects, constructors,
-   RC, aliased parameters and unsafe/partial code. It cannot silently fall back.
-4. The pass exports a typed argument-register selection via a
-   SimplePersistentEnvExtension recorded into the declaring module's .olean.
-5. A separate Lean CLI imports the module and requires exactly one corresponding
-   checked export, then emits native machine bytes directly as an ELF64 x86-64
-   relocatable object; no generated C/Rust/LLVM/assembly intermediate language.
-6. A C harness is used **only as an independent executable ABI test**. It links
-   the emitted object and checks 200,000 seeded scalar inputs and edge cases.
+An ordinary source function in Lean4LeanCompiler/NativeExamples.lean:
 
-The supported current example is a UInt64 identity. This is intentionally tiny
-but provides a complete *source declaration → actual compiler IR → native object*
-route that previously did not exist.
+    @[noinline] def returnScalar (x : UInt64) : UInt64 := x
+    #l4lc_extract_scalar returnScalar
 
-## Commands
+is lowered by the pinned Lean compiler to impure LCNF. The explicit
+compiler command reads that actual compiler declaration, checks its
+safety, type, arity, input register and direct-return shape, and
+synthesizes an ordinary Lean constant called extractedScalar.
+It rejects unsupported declarations rather than using a stock fallback.
 
-Use the existing pinned lean-toolchain and Linux/x86-64:
+The subsequent Lean kernel theorem in Native/SourceLink.lean verifies
+that returnScalar's logical output matches the *generated* register
+selection. This closes the model-level source-value gap for this
+single declaration rather than merely trusting the name of a compiler
+optimization.
 
-    lake build Lean4LeanCompiler.NativeExamples lean4leanFromLCNF
+The Lean 4 ELFScalar module serializes ELF64 relocatable machine code
+directly from the selected register. No generated C, Rust, LLVM or
+assembler source is an intermediate language. The independent C
+harness tests the native ABI, not code generation.
+
+## Reproduction
+
+    lake build Lean4LeanCompiler.Native.SourceLink lean4leanFromLCNF lean4leanCheckNative
     mkdir -p .lake/build/native
     lake exe lean4leanFromLCNF .lake/build/native/from_lcnf.o
+    lake exe lean4leanCheckNative .lake/build/native/from_lcnf.o
     readelf -hW -SW -sW .lake/build/native/from_lcnf.o
     objdump -dr .lake/build/native/from_lcnf.o
     cc -std=c11 -O3 -fno-lto -Wall -Wextra -Werror -Wl,-z,noexecstack \
-      tests/native-from-lcnf.c .lake/build/native/from_lcnf.o \
-      -o .lake/build/native/from-lcnf-test
+        tests/native-from-lcnf.c .lake/build/native/from_lcnf.o \
+        -o .lake/build/native/from-lcnf-test
     .lake/build/native/from-lcnf-test
 
-## What is actually proved
+The GitHub Actions job also tests a corrupted object, checks the ELF
+layout, and executes 200,000 deterministic randomized scalar calls
+and boundary inputs.
 
-- For the recognized register-choice vocabulary, encode/decode round-trip and
-  register-value semantics are checked by Lean theorems.
-- ELF layout consistency and exact text-byte extraction are checked by Lean
-  theorems for each supported register selection.
-- The ordinary Lean scalar function's logical output equals the modeled register
-  return, checked with a source-level theorem.
-- Existing Lean resource model/strict-LCNF-site proofs remain independent.
+## Verified, tested and unverified boundaries
 
-## Not yet established
+Verified by Lean's kernel:
+- Supported register encoding/decoding and modeled register semantics.
+- Exact encoded .text from the selected register, plus ELF structural
+  layout of this restricted profile.
+- Source-level output equality for the compiler-generated selection.
+- Whole-artifact validator acceptance implies exact equality to the
+  selected output bytes.
 
-- A verified *general* LCNF operational semantics or trusted proof of the
-  translator's arbitrary-input soundness.
-- Correctness of the stock erasure/lowering pipeline and runtime ABI against
-  the mathematical Lean declarations.
-- CPU, linker, loader, executable memory and all-of-ISA semantics.
-- Resource guarantees for real Lean heap/RC operations.
-- General arithmetic, direct calls or branch lowering from arbitrary LCNF.
-- Faster compilation of the Lean 4 language itself. Current benchmarks only
-  show a workload-specific runtime improvement for a distinct proof-selected
-  serialization rewrite.
+The source-level and register theorems have no axiom dependencies.
+The exact byte-checker theorem lists standard Lean logical axioms
+propext and Quot.sound; there are no new admitted correctness axioms.
 
-The persistent .olean summary is produced only by the source-bound compiler
-pass; it is not a semantic proof of .olean serialization itself. Artifact
-tampering and stale dependency binaries require separate validation and are
-outside the current proof. Unsupported strict compilation fails explicitly.
+Tested, not formally verified:
+- Real CPU execution of generated bytes and external linker/loader.
+- System V ABI assumptions and execution of the compiled native
+  object on Linux x86-64.
+- The independent test harness and compiler toolchain runtime behavior.
 
-## Reference implementations
+Not implemented or proved:
+- General source-to-LCNF semantic correspondence and imported
+  erasure semantics.
+- Arbitrary arithmetic, branching, higher-order calls or native
+  Lean object layouts through this importer.
+- Physical allocation/RC/stack guarantees for a Lean program.
+- Faster compilation of the Lean4 language or a full compiler
+  replacement. Previous favorable preallocated ByteArray join
+  measurements are compiled-program runtime benchmarks, not bootstrap
+  compilation speedups.
 
-- Pinned compiler pass manager:
-  https://github.com/leanprover/lean4/blob/v4.33.0-rc2/src/Lean/Compiler/LCNF/PassManager.lean
-- Pinned impure-LCNF:
+## Primary sources
+
+- Lean v4.33.0-rc2 compiler LCNF:
   https://github.com/leanprover/lean4/blob/v4.33.0-rc2/src/Lean/Compiler/LCNF/Basic.lean
-- Persistent environment extension API:
-  https://github.com/leanprover/lean4/blob/v4.33.0-rc2/src/Lean/EnvExtension.lean
-- Pinned pass ordering:
-  https://github.com/leanprover/lean4/blob/v4.33.0-rc2/src/Lean/Compiler/LCNF/Passes.lean
-- SysV x86-64 ABI:
+- Lean compiler pass manager:
+  https://github.com/leanprover/lean4/blob/v4.33.0-rc2/src/Lean/Compiler/LCNF/PassManager.lean
+- Lean command elaborator:
+  https://github.com/leanprover/lean4/blob/v4.33.0-rc2/src/Lean/Elab/Command.lean
+- System V AMD64:
   https://refspecs.linuxfoundation.org/elf/x86_64-abi-0.99.pdf
-- ELF gABI:
-  https://gabi.xinuos.com/v42/elf/03-sheader.html
+- ELF gABI: https://gabi.xinuos.com/v42/elf/03-sheader.html
+- Morphic: https://github.com/morphic-lang/morphic
+- FP2: https://www.microsoft.com/en-us/research/wp-content/uploads/2023/05/fbip.pdf
+- Destination Calculus: https://arxiv.org/abs/2503.07489
 
-This does not implement full Morphic inference, FP2 resource credits, or
-destination-passing for arbitrary Lean declarations; see the corresponding
-research and verification ledgers before interpreting any result as certified.
+Next: add a second independently extracted scalar argument source,
+checked direct calls and small modular arithmetic, then validate an
+LCNF operational semantics and resource contracts linked to real runtime
+observations. The current narrow success does not imply those properties.
