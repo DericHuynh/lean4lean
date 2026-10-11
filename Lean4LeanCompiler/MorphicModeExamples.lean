@@ -1,6 +1,5 @@
-import Lean4LeanCompiler.MorphicModeInstaller
+import Lean4LeanCompiler.MorphicModeProbe
 
-set_option trace.Compiler.morphicBorrow true
 
 namespace Lean4LeanCompiler.MorphicModeExamples
 

@@ -2,16 +2,12 @@
 Copyright (c) 2026 Lean contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-module
-
-prelude
-public import Lean.Compiler.LCNF.CompilerM
-public import Lean.Compiler.LCNF.PassManager
+import Lean.Compiler.LCNF.CompilerM
+import Lean.Compiler.LCNF.PassManager
 import Lean.Compiler.ExportAttr
 import Lean.Compiler.LCNF.PhaseExt
 import Lean.Compiler.Options
 
-public section
 
 namespace Lean.Compiler
 
@@ -250,3 +246,19 @@ builtin_initialize
 end Lean.Compiler.LCNF.MorphicBorrow
 
 
+
+
+namespace Lean4LeanCompiler.MorphicModeProbe
+
+open Lean
+open Lean.Compiler.LCNF
+
+@[cpass] meta def installModes : PassInstaller :=
+  PassInstaller.installBefore .impure (Name.mkSimple "inferBorrow")
+    (fun _ => MorphicBorrow.inferMorphicBorrow)
+
+@[cpass] meta def auditModes : PassInstaller :=
+  PassInstaller.installAfter .impure (Name.mkSimple "inferBorrow")
+    (fun _ => MorphicBorrow.auditMorphicBorrow)
+
+end Lean4LeanCompiler.MorphicModeProbe
