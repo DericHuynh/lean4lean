@@ -106,10 +106,6 @@ def nativeExtractionPass : Pass where
           logInfo m!"[l4lc-native] extracted {d.name} from impure LCNF: {repr reg}; no fallback; ABI=x86_64-sysv"
     return ds
 
-@[cpass] meta def installNativeExtraction : PassInstaller :=
-  PassInstaller.installAfter .impure (Name.mkSimple "coalesceRc")
-    (fun _ => nativeExtractionPass)
-
 /-- Fast unit-level rejection tests; actual declaration capture is tested
     independently in the native executable and GitHub CI. -/
 def checkFixtures : IO Unit := do
