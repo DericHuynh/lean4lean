@@ -52,3 +52,8 @@ root = "Lean4LeanCompiler.ConcatBenchMain"
 [[lean_exe]]
 name = "lean4leanFromLCNF"
 root = "Lean4LeanCompiler.Native.FromLCNFMain"
+
+# Verify the *entire* emitted object against the Lean source-bound selection.
+[[lean_exe]]
+name = "lean4leanCheckNative"
+root = "Lean4LeanCompiler.Native.CheckFromLCNFMain"
