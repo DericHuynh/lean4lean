@@ -62,3 +62,7 @@ root = "Lean4LeanCompiler.Native.CheckFromLCNFMain"
 [[lean_exe]]
 name = "lean4leanAppendProbe"
 root = "Lean4LeanCompiler.ProbeExamples"
+
+[[lean_exe]]
+name = "lean4leanAppendFusionBench"
+root = "Lean4LeanCompiler.AppendProbeBenchMain"

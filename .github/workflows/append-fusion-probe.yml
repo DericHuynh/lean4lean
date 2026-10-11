@@ -15,7 +15,9 @@ jobs:
         with:
           auto-config: "false"
           build: "true"
-          build-args: "lean4leanAppendProbe"
+          build-args: "lean4leanAppendProbe lean4leanAppendFusionBench"
           use-mathlib-cache: "false"
       - name: Run compiled probe
         run: lake exe lean4leanAppendProbe
+      - name: Benchmark stock versus automatically fused Lean ByteArray joins
+        run: lake exe lean4leanAppendFusionBench
