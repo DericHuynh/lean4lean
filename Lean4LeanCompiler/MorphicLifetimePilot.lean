@@ -327,17 +327,4 @@ builtin_initialize
 
 end Lean.Compiler.LCNF.MorphicBorrow
 
-namespace Lean4LeanCompiler.MorphicLifetimePilot
-open Lean.Compiler.LCNF
-@[cpass] meta def installMorphicBorrow : PassInstaller :=
-  PassInstaller.installBefore .impure (Name.mkSimple "inferBorrow")
-    (fun _ => MorphicBorrow.inferMorphicBorrow)
-@[cpass] meta def auditMorphicBorrow : PassInstaller :=
-  PassInstaller.installAfter .impure (Name.mkSimple "inferBorrow")
-    (fun _ => MorphicBorrow.auditMorphicBorrow)
-@[cpass] meta def auditRcSites : PassInstaller :=
-  PassInstaller.installAfter .impure (Name.mkSimple "explicitRc")
-    (fun _ => MorphicBorrow.auditRetains)
-end Lean4LeanCompiler.MorphicLifetimePilot
-
 #print axioms Lean.Compiler.LCNF.MorphicBorrow.Mode.join_monotone

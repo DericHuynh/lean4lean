@@ -1,4 +1,4 @@
-import Lean4LeanCompiler.MorphicLifetimePilot
+import Lean4LeanCompiler.MorphicLifetimeInstaller
 set_option trace.Compiler.morphicBorrow true
 
 /-!
