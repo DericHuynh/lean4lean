@@ -194,6 +194,10 @@ def MeetsContract (budget : Budget) (s : State) : Prop :=
   s.cost.regionAllocations ≤ budget.maxRegionAllocations ∧
   s.cost.regionBytesAllocated ≤ budget.maxRegionBytes
 
+instance (budget : Budget) (s : State) : Decidable (MeetsContract budget s) := by
+  unfold MeetsContract
+  infer_instance
+
 /-- The accepted certificate is the exact list of modeled instructions,
     exact initial state and budget. No runtime bytes are certified yet. -/
 def check (budget : Budget) (ops : List Op) (initial : State) : Bool :=
@@ -210,7 +214,7 @@ theorem check_sound (budget : Budget) (ops : List Op) (initial : State)
   cases hrun : run ops initial with
   | none => simp [hrun] at h
   | some final =>
-    refine ⟨final, hrun, ?_⟩
+    refine ⟨final, rfl, ?_⟩
     have hd : decide (MeetsContract budget final) = true := by
       simpa [hrun] using h
     exact of_decide_eq_true hd
