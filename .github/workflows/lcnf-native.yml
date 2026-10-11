@@ -29,7 +29,7 @@ jobs:
         with:
           auto-config: "false"
           build: "true"
-          build-args: "Lean4LeanCompiler.NativeExamples lean4leanFromLCNF"
+          build-args: "Lean4LeanCompiler.Native.SourceLink lean4leanFromLCNF"
           use-mathlib-cache: "false"
       - name: Generate native ELF from actual compiled Lean LCNF
         run: |
