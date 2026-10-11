@@ -72,11 +72,13 @@ theorem validate_sound (x : FVarId) (code : Code .impure)
   cases hx : hasDirectTransferAux (code.size + 1) x code <;>
     simp [hx] at h ⊢
 
+/-- Fuel zero conservatively rejects even a syntactically harmless path. -/
 private def x : FVarId := ⟨Name.mkSimple "source"⟩
 private def y : FVarId := ⟨Name.mkSimple "result"⟩
 
-example : validate x (.return x) = false := by decide
-example : validate x (.return y) = true := by decide
+example : hasDirectTransferAux 4 x (.return x) = true := by decide
+example : hasDirectTransferAux 4 x (.return y) = false := by decide
+example : hasDirectTransferAux 0 x (.return y) = true := by decide
 
 private def cinfo : CtorInfo :=
   { name := Name.mkSimple "Box.mk"
@@ -87,28 +89,28 @@ private def boxCode : Code .impure :=
          type := ImpureType.object,
          value := .ctor cinfo #[.fvar x] } (.return y)
 
-example : validate x boxCode = true := by decide
+example : hasDirectTransferAux 4 x boxCode = false := by decide
 
 private def resetCode : Code .impure :=
   .let { fvarId := y, binderName := Name.mkSimple "reset",
          type := ImpureType.tobject,
          value := .reset 1 x } (.return y)
 
-example : validate x resetCode = false := by decide
+example : hasDirectTransferAux 4 x resetCode = true := by decide
 
 private def closureCode : Code .impure :=
   .let { fvarId := y, binderName := Name.mkSimple "closure",
          type := ImpureType.object,
          value := .pap (Name.mkSimple "f") #[.fvar x] } (.return y)
 
-example : validate x closureCode = false := by decide
+example : hasDirectTransferAux 4 x closureCode = true := by decide
 
 private def aliasCode : Code .impure :=
   .let { fvarId := y, binderName := Name.mkSimple "projection",
          type := ImpureType.object,
          value := .oproj 0 x } (.return y)
 
-example : validate x aliasCode = false := by decide
+example : hasDirectTransferAux 4 x aliasCode = true := by decide
 
 #print axioms validate_sound
 
