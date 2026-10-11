@@ -21,5 +21,27 @@ jobs:
         with:
           auto-config: "false"
           build: "true"
-          build-args: "Lean4LeanCompiler.Native.ArithmeticSourceProof"
+          build-args: "Lean4LeanCompiler.Native.ELFArithmetic lean4leanAddFromLCNF lean4leanCheckAddNative"
           use-mathlib-cache: "false"
+      - name: Emit and inspect actual-LCNF x86 ELF object
+        run: |
+          mkdir -p .lake/build/native
+          lake exe lean4leanAddFromLCNF .lake/build/native/add_lcnf.o
+          file .lake/build/native/add_lcnf.o
+          readelf -hW -SW -sW .lake/build/native/add_lcnf.o
+          objdump -dr .lake/build/native/add_lcnf.o
+      - name: Validate exact artifact and reject one-byte mutation
+        run: |
+          lake exe lean4leanCheckAddNative .lake/build/native/add_lcnf.o
+          cp .lake/build/native/add_lcnf.o .lake/build/native/corrupt_add.o
+          printf '\0' | dd of=.lake/build/native/corrupt_add.o bs=1 seek=64 count=1 conv=notrunc
+          if lake exe lean4leanCheckAddNative .lake/build/native/corrupt_add.o; then
+            echo "Invalid ELF artifact accepted"
+            exit 1
+          fi
+      - name: Link generated object and compare 200000 arithmetic calls
+        run: |
+          cc -std=c11 -O3 -fno-lto -Wall -Wextra -Werror \
+            -Wl,-z,noexecstack tests/native-from-lcnf-add.c \
+            .lake/build/native/add_lcnf.o -o .lake/build/native/add_lcnf_test
+          .lake/build/native/add_lcnf_test
