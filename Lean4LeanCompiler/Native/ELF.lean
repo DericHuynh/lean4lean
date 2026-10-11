@@ -116,7 +116,7 @@ set_option maxRecDepth 16384 in
 theorem code_span_correct :
     (objectBytes.drop textOffset).take textBytes.length = textBytes := by decide
 
-/-- Together with ISA.decode* and Certified.sourceCorrect, code_span_correct
+/- Together with ISA.decode* and Certified.sourceCorrect, code_span_correct
     ties the checked instruction subset to the exact emitted .text bytes.
     This does NOT prove the behavior of a real CPU or ELF loader. -/
 set_option maxRecDepth 16384 in
