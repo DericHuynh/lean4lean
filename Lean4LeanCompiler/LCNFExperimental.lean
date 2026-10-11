@@ -41,10 +41,15 @@ mutual
 end
 
 /-- In particular, do not silently rewrite the kernel checker. -/
-def experimentalPrefix : String := "Lean4LeanCompiler.Examples."
+def isTarget (n : Name) : Bool :=
+  let name := n.toString
+  name == "Lean4LeanCompiler.Examples.copyFour" ||
+  name == "Lean4LeanCompiler.Examples.reverseFour" ||
+  name == "Lean4LeanCompiler.Examples.writeFourInto" ||
+  name == "Lean4LeanCompiler.Examples.bumpList"
 
 def optDecl (decl : Decl .impure) : Decl .impure := Id.run do
-  unless decl.name.toString.startsWith experimentalPrefix do
+  unless isTarget decl.name do
     return decl
   match decl.value with
   | .code body => return { decl with value := .code (eraseZeroRC body) }
@@ -58,7 +63,7 @@ def zeroRcPass : Pass where
     let mut result := #[]
     for decl in decls do
       let next := optDecl decl
-      if decl.name.toString.startsWith experimentalPrefix then
+      if isTarget decl.name then
         logInfo m!"[l4lc] {decl.name}: {decl.size} -> {next.size} nodes; stock backend; certified=false"
       result := result.push next
     return result

@@ -235,7 +235,7 @@ theorem run_eraseNops (ops : List Op) (initial : State) :
     · simp only [eraseNops, if_neg hop]
       simp only [run]
       cases hstep : step initial op with
-      | none => simp [hstep]
+      | none => simp
       | some next => simpa [hstep] using ih next
 
 theorem check_eraseNops (budget : Budget) (ops : List Op) (initial : State) :

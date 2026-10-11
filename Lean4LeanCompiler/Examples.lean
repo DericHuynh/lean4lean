@@ -63,11 +63,13 @@ def smokeTest : IO Unit := do
     | throw <| IO.userError "writeFourInto rejected valid destination"
   unless written == source do
     throw <| IO.userError "writeFourInto mismatch"
+  unless writeFourInto source source == some source do
+    throw <| IO.userError "writeFourInto aliasing semantics mismatch"
   unless (writeFourInto source ByteArray.empty).isNone do
     throw <| IO.userError "accepted insufficient destination capacity"
   unless (writeFourInto ByteArray.empty target).isNone do
     throw <| IO.userError "accepted insufficient input"
-  for n in [0, 1, 2, 3, 4, 5, 7, 12] do
+  for n in List.range 128 do
     let input := ((List.range n).map (fun i => (i * 23 + 7).toUInt8)).toByteArray
     unless copyFour input == Lean4LeanCompiler.Reference.copyFour input do
       throw <| IO.userError s!"copyFour vs stock mismatch at length {n}"
@@ -77,7 +79,8 @@ def smokeTest : IO Unit := do
       throw <| IO.userError s!"writeFourInto vs stock mismatch at length {n}"
   unless bumpList [0, 1, 255] == Lean4LeanCompiler.Reference.bumpList [0, 1, 255] do
     throw <| IO.userError "bumpList vs stock mismatch"
-  IO.println "Lean compiled differential tests passed; resource certification=false"
+  IO.println "Lean compiled differential tests passed for 128 lengths; resource certification=false"
+  IO.println "{\"schema\":1,\"target\":\"lean4leanCompilerDemo\",\"toolchain\":\"leanprover/lean4:v4.33.0-rc2\",\"backend\":\"stock-Lean\",\"passes\":[\"zero-count-RC-cleanup\",\"borrow-audit\"],\"fallback\":false,\"resourceCertified\":false}"
 
 end Lean4LeanCompiler.Examples
 

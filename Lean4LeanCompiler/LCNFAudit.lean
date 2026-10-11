@@ -14,7 +14,10 @@ def auditPass : Pass where
   name := Name.mkSimple "l4lcAudit"
   run := fun decls => do
     for decl in decls do
-      if decl.name.toString.startsWith "Lean4LeanCompiler.Examples." then
+      if decl.name.toString == "Lean4LeanCompiler.Examples.copyFour" ||
+         decl.name.toString == "Lean4LeanCompiler.Examples.reverseFour" ||
+         decl.name.toString == "Lean4LeanCompiler.Examples.writeFourInto" ||
+         decl.name.toString == "Lean4LeanCompiler.Examples.bumpList" then
         let borrowed := decl.params.foldl
           (fun n p => if p.borrow then n + 1 else n) (0 : Nat)
         logInfo m!"[l4lc] {decl.name}: borrowed parameters={borrowed}; certified=false"
