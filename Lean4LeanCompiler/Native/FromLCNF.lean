@@ -2,7 +2,8 @@
 Actual impure-LCNF -> typed scalar native lowering adapter.
 Works on elaborated and stock-lowered Lean declarations, not a toy AST.
 Only safe nonrecursive fixed-width scalar identity returns are accepted.
-A persistent extension exports the strictly checked compilation decision.
+An explicit Lean command converts the checked selection into an ordinary
+Lean constant, subsequently tied to the source by a Lean theorem.
 
 The source/compiler IR correctness, ABI/CPU implementation, and erasure
 relations are separate trust boundaries; they are NOT proved here.
@@ -71,38 +72,12 @@ theorem encoded_operand_semantics (r : Register) (a b : UInt64) :
     eval r a b = (if r == .rdi then a else b) := by
   cases r <;> exact ⟨rfl, rfl⟩
 
-/-- The persistent entry records exactly what was checked when compilation
-    ran, not a hash of an unrelated filename or user-provided AST. -/
+/-- The output representation records the checked native register source.
+    It is only constructed after explicit source-LCNF recognition. -/
 structure Entry where
   name : Name
   arg : Register
   deriving Inhabited, BEq, Repr
-
-builtin_initialize exportedNative : SimplePersistentEnvExtension Entry (Array Entry) ←
-  registerSimplePersistentEnvExtension {
-    addEntryFn := fun entries entry => entries.push entry
-    addImportedFn := fun modules =>
-      modules.foldl (fun entries es => entries ++ es) #[]
-    asyncMode := .sync
-  }
-
-/-- Only named, opt-in ordinary declarations get native lowering.
-    A compiler unsupported case is an error, not a stock fallback. -/
-def isRequested (name : Name) : Bool :=
-  name.toString == "Lean4LeanCompiler.NativeExamples.returnScalar"
-
-def nativeExtractionPass : Pass where
-  phase := .impure
-  phaseOut := .impure
-  name := Name.mkSimple "l4lcNativeScalarImport"
-  run := fun ds => do
-    for d in ds do
-      if isRequested d.name then
-        match recognize d with
-        | none => throwError m!"[l4lc-native] unsupported LCNF in requested declaration {d.name}; no native object produced"
-        | some reg =>
-          logInfo m!"[l4lc-native] recognized {d.name} from impure LCNF: {repr reg}; persistence disabled in diagnostic mode"
-    return ds
 
 /-- Fast unit-level rejection tests; actual declaration capture is tested
     independently in the native executable and GitHub CI. -/
