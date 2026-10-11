@@ -76,7 +76,8 @@ mutual
     | .dec _ _ _ _ _ k _ =>
       { (codeSites k) with dec := (codeSites k).dec + 1 }
     | .jmp .. => { jumps := 1 }
-    | .return .. | .unreach .. => {}
+    | .return .. => {}
+    | .unreach .. => { unknown := 1 }
     | _ => { unknown := 1 }
 
   partial def altSites (alt : Alt .impure) : Sites :=
