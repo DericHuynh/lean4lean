@@ -21,6 +21,15 @@ theorem returnScalar_opcode :
       (Lean4LeanCompiler.Native.FromLCNF.encode .rdi) = some .rdi := by
   decide
 
+/-- A second ordinary Lean function is tied to the *actual* extracted
+    register from its two-argument impure-LCNF declaration. -/
+theorem returnSecond_matches_native_model (a b : UInt64) :
+    Lean4LeanCompiler.NativeExamples.returnSecond a b =
+      Lean4LeanCompiler.Native.FromLCNF.eval
+        Lean4LeanCompiler.NativeExamples.extractedSecond a b := by
+  rfl
+
+#print axioms returnSecond_matches_native_model
 #print axioms returnScalar_matches_native_model
 #print axioms returnScalar_opcode
 

@@ -11,11 +11,11 @@ namespace Lean4LeanCompiler.Native.Command
 open Lean Elab Command
 open Lean.Compiler.LCNF
 
-syntax (name := l4lcExtractScalar) "#l4lc_extract_scalar " ident : command
+syntax (name := l4lcExtractScalar) "#l4lc_extract_scalar " ident " as " ident : command
 
 @[command_elab l4lcExtractScalar]
 meta def elabScalarExtraction : CommandElab
-  | `(#l4lc_extract_scalar $decl:ident) => do
+  | `(#l4lc_extract_scalar $decl:ident as $outIdent:ident) => do
     let name ← liftCoreM <| realizeGlobalConstNoOverloadWithInfo decl
     let mut d? ← liftCoreM <| getLocalImpureDecl? name
     if d?.isNone then
@@ -24,7 +24,6 @@ meta def elabScalarExtraction : CommandElab
     let some d := d? | throwError "no compiled impure LCNF for {name}; no native fallback"
     let some reg := FromLCNF.recognize d
       | throwError "unsupported scalar LCNF declaration {name}; no native fallback"
-    let outIdent := mkIdent (Name.mkSimple "extractedScalar")
     let definition ← match reg with
       | .rdi => `(def $outIdent:ident : Lean4LeanCompiler.Native.FromLCNF.Register := .rdi)
       | .rsi => `(def $outIdent:ident : Lean4LeanCompiler.Native.FromLCNF.Register := .rsi)
