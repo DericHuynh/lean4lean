@@ -24,9 +24,10 @@ meta def elabScalarExtraction : CommandElab
     let some d := d? | throwError "no compiled impure LCNF for {name}; no native fallback"
     let some reg := FromLCNF.recognize d
       | throwError "unsupported scalar LCNF declaration {name}; no native fallback"
+    let outIdent := mkIdent (Name.mkSimple "extractedScalar")
     let definition ← match reg with
-      | .rdi => `(def _root_.Lean4LeanCompiler.NativeExamples.extractedScalar : Lean4LeanCompiler.Native.FromLCNF.Register := .rdi)
-      | .rsi => `(def _root_.Lean4LeanCompiler.NativeExamples.extractedScalar : Lean4LeanCompiler.Native.FromLCNF.Register := .rsi)
+      | .rdi => `(def $outIdent:ident : Lean4LeanCompiler.Native.FromLCNF.Register := .rdi)
+      | .rsi => `(def $outIdent:ident : Lean4LeanCompiler.Native.FromLCNF.Register := .rsi)
     elabCommand definition
     logInfo m!"[l4lc-native] checked actual LCNF extraction for {name}: {repr reg}"
   | _ => throwUnsupportedSyntax
