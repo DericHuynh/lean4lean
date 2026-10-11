@@ -158,7 +158,7 @@ theorem emitted_call_opcode :
         ISA.callCode.length) =
       some ISA.callInstructions := by decide
 
-/-- Precise call-site offset and R_X86_64_PLT32 metadata are covered by a
+/- Precise call-site offset and R_X86_64_PLT32 metadata are covered by a
     separate, kernel-checked payload equality, not just a file-level flag. -/
 set_option maxRecDepth 32768 in
 theorem relocation_payload_correct :
