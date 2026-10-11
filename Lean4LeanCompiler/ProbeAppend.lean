@@ -4,6 +4,34 @@ namespace Lean4LeanCompiler.ProbeAppend
 open Lean
 open Lean.Compiler.LCNF
 
+
+partial def collectBase : Code .pure → List String
+  | .let decl k =>
+    let head := match decl.value with
+      | .const name .. => [name.toString]
+      | .fvar .. => ["fvar application"]
+      | _ => []
+    head ++ collectBase k
+  | .fun (.mk _ _ _ _ body) k _ | .jp (.mk _ _ _ _ body) k =>
+    collectBase body ++ collectBase k
+  | .cases (.mk _ _ _ alts) =>
+    alts.toList.flatMap (fun alt => collectBase alt.getCode)
+  | .return .. | .jmp .. | .unreach .. => []
+
+def probeBasePass : Pass where
+  phase := .base
+  phaseOut := .base
+  name := Name.mkSimple "appendProbeBase"
+  run := fun decls => do
+    for decl in decls do
+      if decl.name.toString.startsWith "Lean4LeanCompiler.ProbeExamples." then
+        if let .code body := decl.value then
+          logInfo m!"[append-probe-base] {decl.name}: {collectBase body}"
+    return decls
+
+@[cpass] meta def installProbeBase : PassInstaller :=
+  PassInstaller.installAfter .base (Name.mkSimple "init") (fun _ => probeBasePass)
+
 partial def collect : Code .impure → List String
   | .let decl k =>
     let head := match decl.value with
