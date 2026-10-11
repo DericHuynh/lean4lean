@@ -1,4 +1,4 @@
-import Lean.Compiler.LCNF.Passes
+import Lean.Compiler.LCNF.PassManager
 import Init.Data.ByteArray.Lemmas
 
 namespace Lean4LeanCompiler.AppendFusionPilot
