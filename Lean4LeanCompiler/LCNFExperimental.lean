@@ -51,8 +51,9 @@ def optDecl (decl : Decl .impure) : Decl .impure := Id.run do
   | _ => return decl
 
 def zeroRcPass : Pass where
-  name := Name.mkSimple "l4lcElideZeroRC"
   phase := .impure
+  phaseOut := .impure
+  name := Name.mkSimple "l4lcElideZeroRC"
   run := fun decls => do
     let mut result := #[]
     for decl in decls do
