@@ -86,8 +86,8 @@ def gateSmoke : IO Unit := do
     throw <| IO.userError "strict gate rejected an effect-free identity"
   unless (validate good).isOk do
     throw <| IO.userError "strict gate returned fallback for accepted program"
-  let bad := { good with value :=
-    .code (.inc x 1 false false (.return x)) }
+  let bad : Decl .impure :=
+    { good with value := .code (.inc x 1 false false (.return x)) }
   if check bad then
     throw <| IO.userError "strict gate accepted explicit RC"
   if (validate bad).isOk then
