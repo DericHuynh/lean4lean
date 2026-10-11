@@ -103,7 +103,7 @@ def layoutValid : Bool :=
   symbolsOffset % 8 == 0 &&
   headersOffset % 8 == 0 &&
   objectBytes.length == headersOffset + 5 * 64 &&
-  textBytes.length == 12
+  textBytes.length == 10
 
 set_option maxRecDepth 16384 in
 theorem layoutValid_true : layoutValid = true := by decide

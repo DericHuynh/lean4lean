@@ -10,7 +10,13 @@ namespace Lean4LeanCompiler.Native.ISA
 
 /-- x86-64 SysV: mov rax,rdi; add rax,rsi; ret.
     64-bit unsigned arithmetic wraps modulo 2^64. -/
-def addCode : List UInt8 := [0x48, 0x89, 0xf8, 0x48, 0x01, 0xf0, 0xc3]
+def addCodeBaseline : List UInt8 := [0x48, 0x89, 0xf8, 0x48, 0x01, 0xf0, 0xc3]
+
+/-- One LEA and RET instead of a MOV/ADD/RET pair. LEA computes the
+    effective address but never dereferences a pointer. -/
+def addCode : List UInt8 := [0x48, 0x8d, 0x04, 0x37, 0xc3]
+
+theorem addCode_smaller : addCode.length < addCodeBaseline.length := by decide
 
 /-- x86-64 SysV: mov eax,[rdi]; mov [rsi],eax; ret.
     Assumes valid addressable 4-byte ranges on the native machine.
@@ -18,15 +24,18 @@ def addCode : List UInt8 := [0x48, 0x89, 0xf8, 0x48, 0x01, 0xf0, 0xc3]
 def copyCode : List UInt8 := [0x8b, 0x07, 0x89, 0x06, 0xc3]
 
 inductive AddInstruction where
-  | movRaxRdi | addRaxRsi | ret
+  | movRaxRdi | addRaxRsi | leaRaxRdiRsi | ret
   deriving DecidableEq, Inhabited
 
 inductive CopyInstruction where
   | loadEaxFromRdi | storeEaxToRsi | ret
   deriving DecidableEq, Inhabited
 
-def addInstructions : List AddInstruction :=
+def addInstructionsBaseline : List AddInstruction :=
   [.movRaxRdi, .addRaxRsi, .ret]
+
+def addInstructions : List AddInstruction :=
+  [.leaRaxRdiRsi, .ret]
 
 def copyInstructions : List CopyInstruction :=
   [.loadEaxFromRdi, .storeEaxToRsi, .ret]
@@ -54,6 +63,7 @@ structure AddRegisters where
 def stepAdd (reg : AddRegisters) : AddInstruction → AddRegisters
   | .movRaxRdi => { reg with rax := reg.rdi }
   | .addRaxRsi => { reg with rax := reg.rax + reg.rsi }
+  | .leaRaxRdiRsi => { reg with rax := reg.rdi + reg.rsi }
   | .ret => reg
 
 def runAdd (instrs : List AddInstruction) (reg : AddRegisters) : AddRegisters :=
@@ -61,6 +71,9 @@ def runAdd (instrs : List AddInstruction) (reg : AddRegisters) : AddRegisters :=
 
 /-- The generated machine-code vocabulary's modeled add computes the
     exact semantics of Lean UInt64 addition, including wraparound. -/
+theorem addBaseline_correct (a b : UInt64) :
+    (runAdd addInstructionsBaseline { rdi := a, rsi := b }).rax = a + b := by rfl
+
 theorem addCode_correct (a b : UInt64) :
     (runAdd addInstructions { rdi := a, rsi := b }).rax = a + b := by rfl
 
